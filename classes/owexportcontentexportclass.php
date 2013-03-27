@@ -77,6 +77,9 @@ class OWExportContentExportClass {
 		} else {
 			$baseDirectory = eZExtension::baseDirectory().'/owexportcontent/data/';
 			$this->createDirIfNotExist($baseDirectory);
+			$baseDirectory = $baseDirectory.'class/';
+			$this->createDirIfNotExist($baseDirectory);
+			
 			$fileName = "export_class.xml";
 			$fileHandle = fopen($baseDirectory.$fileName, 'w+') or die("can't open file");
 			fwrite($fileHandle, $this->xml);

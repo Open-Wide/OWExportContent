@@ -157,6 +157,9 @@ class OWExportContentExportContent {
 		} 
 		$baseDirectory = eZExtension::baseDirectory().'/owexportcontent/data/';
 		$this->createDirIfNotExist($baseDirectory);
+		$baseDirectory = $baseDirectory.'content/';
+		$this->createDirIfNotExist($baseDirectory);
+		
 		$fileName = "export_arbo_".$this->rootNode.".xml";
 		$fileHandle = fopen($baseDirectory.$fileName, 'w+') or die("can't open file");
 		fwrite($fileHandle, $this->xml);
