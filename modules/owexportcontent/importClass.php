@@ -1,3 +1,3 @@
 <?php
-$Result = OWExportContentModuleView::getView($Params);
+$Result = OWExportContentModuleView::getViewImportClass($Params);
 ?>

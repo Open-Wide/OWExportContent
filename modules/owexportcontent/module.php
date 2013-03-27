@@ -23,6 +23,14 @@ $ViewList['importcontent'] = array( 'script' => 'importContent.php',
 $ViewList['importclass'] = array( 'script' => 'importClass.php',
 									'default_navigation_part' => 'migratenavigationpart',
 									'functions' => array( 'read' ));
+
+$ViewList['importfile'] = array( 'script' => 'importFile.php',
+									'default_navigation_part' => 'migratenavigationpart',
+									'functions' => array( 'read' ));
+
+$ViewList['deletefile'] = array( 'script' => 'deleteFile.php',
+									'default_navigation_part' => 'migratenavigationpart',
+									'functions' => array( 'read' ));
                                		                               		
 
 $FunctionList = array(); 

@@ -105,6 +105,43 @@ class OWExportContentModuleView {
 		
 	}
 	
+	public static function getViewImportContent($Params, $tpl = false) {
+		if (!$tpl) {
+			$tpl = eZTemplate::factory();
+		}
+		
+		$fileList = self::getFileList('content');
+		$tpl->setVariable('fileList', $fileList);
+	
+		$Result = self::getView($Params, $tpl);
+		return $Result;
+	}
+	
+	public static function getViewImportClass($Params, $tpl = false) {
+		if (!$tpl) {
+			$tpl = eZTemplate::factory();
+		}
+		
+		$fileList = self::getFileList('class');
+		$tpl->setVariable('fileList', $fileList);
+		
+		$Result = self::getView($Params, $tpl);
+		return $Result;
+	}
+	
+	public static function getFileList($type) {
+		$fileList = array();
+		$rootDirExport = eZExtension::baseDirectory().'/owexportcontent/data/'.$type.'/';
+		$dir = opendir($rootDirExport);
+		while($file = readdir($dir)) {
+			if( $file != '.' && $file != '..' && !is_dir($dirname.$file)) {
+				$fileList[] = $file;
+			}
+		}
+		closedir($dir);
+		return $fileList;
+	}
+	
 	
 	public static function d($string) {
 		echo '<pre>';

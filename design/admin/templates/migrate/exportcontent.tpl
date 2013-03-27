@@ -12,7 +12,7 @@
     <div class="box-content">    
         <div class="content-navigation-childlist">
             {if is_set($error)}
-                <p style="color:red">{$error}</p> 
+                <p class="error">{$error}</p> 
             {/if}
         </div>
     </div>
