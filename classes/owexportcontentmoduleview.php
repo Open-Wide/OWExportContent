@@ -142,6 +142,29 @@ class OWExportContentModuleView {
 		return $fileList;
 	}
 	
+	public static function getViewDeleteFile($Params, $tpl = false) {
+		if (!$tpl) {
+			$tpl = eZTemplate::factory();
+		}
+		if (isset($Params['UserParameters']['file'])) {
+			$baseDir = eZExtension::baseDirectory().'/owexportcontent/data/';
+			$file = $Params['UserParameters']['file'];
+			$type = (strstr($file, 'export_arbo') ? 'content' : (strstr($file, 'export_class') ? 'class' : ''));
+			if (file_exists($baseDir.$type.'/'.$file)) {
+				unlink($baseDir.$type.'/'.$file);
+				$tpl->setVariable('noError', 'Le fichier '.$file.' a été supprimé');
+			} else {
+				$tpl->setVariable('error', 'Le fichier "'.$file.'" n\'existe pas.');
+			}
+		} else {
+			$tpl->setVariable('error', 'Pas de fichier à supprimer.');
+		}
+			
+		
+		$Result = self::getView($Params, $tpl);
+		return $Result;
+	}
+	
 	
 	public static function d($string) {
 		echo '<pre>';
