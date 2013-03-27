@@ -1,0 +1,138 @@
+<?php
+
+include_once('extension/owexportcontent/classes/owexportcontenthandler.php');
+
+class OWExportContentAddLocation extends OWExportContentHandler
+{
+
+    function OWExportContentAddLocation( )
+    {
+    }
+
+    function execute( $xmlNode )
+    {
+        $xmlObjectID = $xmlNode->getAttribute( 'contentObject' );
+        $xmlParentNodeID = $xmlNode->getAttribute( 'addToNode' );
+        $setReferenceID = $xmlNode->getAttribute( 'setReference' );
+        $priority = $xmlNode->getAttribute( 'priority' );
+
+        $objectID = $this->getReferenceID( $xmlObjectID );
+        $parentNodeID = $this->getReferenceID( $xmlParentNodeID );
+
+        if ( !$objectID )
+        {
+            $this->writeMessage( "\tNo object defined.", 'error' );
+            return false;
+        }
+        if ( !$parentNodeID )
+        {
+            $this->writeMessage( "\tNo location defined.", 'error' );
+            return false;
+        }
+
+        $object = eZContentObject::fetch( $objectID );
+        if ( !$object )
+        {
+            $this->writeMessage( "\tObject not found.", 'error' );
+            return false;
+        }
+
+        $parentNode =  eZContentObjectTreeNode::fetch( $parentNodeID );
+        if ( !$parentNode )
+        {
+            $this->writeMessage( "\tparent node not found.", 'error' );
+            return false;
+        }
+        $node = $object->attribute( 'main_node' );
+
+        $nodeAssignmentList = eZNodeAssignment::fetchForObject( $objectID, $object->attribute( 'current_version' ), 0, false );
+        $assignedNodes = $object->assignedNodes();
+
+        $parentNodeIDArray = array();
+        $setMainNode = false;
+        $hasMainNode = false;
+        foreach ( $assignedNodes as $assignedNode )
+        {
+            if ( $assignedNode->attribute( 'is_main' ) )
+                $hasMainNode = true;
+            $append = false;
+            foreach ( $nodeAssignmentList as $nodeAssignment )
+            {
+                if ( $nodeAssignment['parent_node'] == $assignedNode->attribute( 'parent_node_id' ) )
+                {
+                    $append = true;
+                    break;
+                }
+            }
+            if ( $append )
+            {
+                $parentNodeIDArray[] = $assignedNode->attribute( 'parent_node_id' );
+            }
+        }
+        if ( !$hasMainNode )
+            $setMainNode = true;
+
+        $mainNodeID = $parentNode->attribute( 'main_node_id' );
+        $objectName = $object->attribute( 'name' );
+
+        $db = eZDB::instance();
+        $db->begin();
+        $locationAdded = false;
+        $destNode = null;
+        if ( !in_array( $parentNodeID, $parentNodeIDArray ) )
+        {
+            $parentNodeObject = $parentNode->attribute( 'object' );
+
+            $insertedNode = $object->addLocation( $parentNodeID, true );
+
+            // Now set is as published and fix main_node_id
+            $insertedNode->setAttribute( 'contentobject_is_published', 1 );
+            $insertedNode->setAttribute( 'main_node_id', $node->attribute( 'main_node_id' ) );
+            $insertedNode->setAttribute( 'contentobject_version', $node->attribute( 'contentobject_version' ) );
+            // Make sure the url alias is set updated.
+            $insertedNode->updateSubTreePath();
+            $insertedNode->sync();
+
+            $locationAdded = true;
+        }
+        if ( $locationAdded )
+        {
+            $ini = eZINI::instance();
+            $userClassID = $ini->variable( "UserSettings", "UserClassID" );
+            if ( $object->attribute( 'contentclass_id' ) == $userClassID )
+            {
+                eZUser::cleanupCache();
+            }
+            $this->writeMessage( "\tAdded location of " . $object->attribute( 'name' ) . "  to Node $parentNodeID", 'notice' );
+
+            $destNode = $insertedNode;
+        }
+        else
+        {
+            $this->writeMessage( "\tLocation of " . $object->attribute( 'name' ) . "  to Node $parentNodeID already exists.", 'notice' );
+
+            $destNode = eZContentObjectTreeNode::fetchObject( eZContentObjectTreeNode::definition(), null, array( 'parent_node_id' => $parentNodeID, 'contentobject_id' => $objectID ) );
+        }
+        $db->commit();
+
+        if( $destNode && $priority )
+        {
+            $destNode->setAttribute( 'priority', $priority );
+            $destNode->store();
+        }
+
+        if( $destNode && $setReferenceID )
+        {
+            $this->addReference( array( $setReferenceID => $destNode->attribute( 'node_id' ) ) );
+        }
+
+        eZContentCacheManager::clearContentCacheIfNeeded( $objectID );
+    }
+
+    static public function handlerInfo()
+    {
+        return array( 'XMLName' => 'AddLocation', 'Info' => 'add location of content object' );
+    }
+}
+
+?>
