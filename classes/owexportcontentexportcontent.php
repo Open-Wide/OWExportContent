@@ -36,7 +36,7 @@ class OWExportContentExportContent {
 	public function export($rootNode) {
 		if($this->exportClass) {
 			try {
-				$exportClass = new OWExportContentExportClass($this->class_option);
+				$exportClass = new OWExportContentExportClass($this->class_option, $rootNode);
 				if (!$exportClass->export()) {
 					return false;
 				}

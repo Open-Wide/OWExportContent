@@ -14,13 +14,15 @@ class OWExportContentExportClass {
 	public $classList;
 	public $option;
 	public $statut = true;
+	public $rootNode;
 	
-	public function __construct($option = false) {
+	public function __construct($option = false, $rootNode = false) {
 		if ($option) {
 			$this->option = $option; 
 		} else {
 			$this->option = 'new';
 		}
+		$this->rootNode = $rootNode;
 	} 
 	
 	public function export() {
@@ -80,7 +82,7 @@ class OWExportContentExportClass {
 			$baseDirectory = $baseDirectory.'class/';
 			$this->createDirIfNotExist($baseDirectory);
 			
-			$fileName = "export_class.xml";
+			$fileName = "export_class".($this->rootNode ? "_".$this->rootNode : "").".xml";
 			$fileHandle = fopen($baseDirectory.$fileName, 'w+') or die("can't open file");
 			fwrite($fileHandle, $this->xml);
 			fclose($fileHandle);
