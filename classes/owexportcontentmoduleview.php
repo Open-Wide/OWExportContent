@@ -165,6 +165,57 @@ class OWExportContentModuleView {
 		return $Result;
 	}
 	
+	public static function getViewImportFile($Params, $tpl = false) {
+		if (!$tpl) {
+			$tpl = eZTemplate::factory();
+		}
+		
+		if (isset($Params['UserParameters']['file'])) {
+			$baseDir = eZExtension::baseDirectory().'/owexportcontent/data/';
+			$file = $Params['UserParameters']['file'];
+			$type = (strstr($file, 'export_arbo') ? 'content' : (strstr($file, 'export_class') ? 'class' : ''));
+			if (file_exists($baseDir.$type.'/'.$file)) {
+				self::addToRunImportFile($type, $file);
+			} else {
+				$tpl->setVariable('error', 'Pas de fichier à importer.');
+			}
+		} else {
+			$tpl->setVariable('error', 'Pas de fichier à importer.');
+		}
+			
+		
+		$Result = self::getView($Params, $tpl);
+		return $Result;
+	}
+	
+	public function addToRunImportFile($type, $file) {
+		$xmlFile = 'run_import.xml';
+		$baseDir = eZExtension::baseDirectory().'/owexportcontent/runimport/';
+		if (file_exists($baseDir.$xmlFile)) {
+			$xml = simplexml_load_file($baseDir.$xmlFile);			
+			$XmlElement = new SimpleXMLElement($xml->asXML());
+			
+			if ($XmlElement->{$type}) {
+				$XmlElement->{$type}->addChild('file', $file);
+			} else {
+				$xmlType = $XmlElement->addChild($type);
+				$xmlType->addChild('file', $file);
+			}
+			
+			$XmlElement->asXML($baseDir.$xmlFile);
+			
+		} else {
+			$contentXml = '<runimport>';
+			$contentXml .= ($type == 'content' ? '<content>' : '<class>');
+			$contentXml .= '<file>'.$file.'</file>';
+			$contentXml .= ($type == 'content' ? '</content>' : '</class>');
+			$contentXml .= '</runimport>';
+			$fileHandle = fopen($baseDir.$xmlFile, 'w+') or die("can't open file");
+			fwrite($fileHandle, $contentXml);
+			fclose($fileHandle);
+		}
+	}
+	
 	
 	public static function d($string) {
 		echo '<pre>';

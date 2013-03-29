@@ -17,7 +17,11 @@
     
     <div class="box-ml"><div class="box-mr"><div class="box-content">        
         <div class="content-navigation-childlist">   
-			<p>Import de fichier a faire</p>
+{if is_set($noError)}
+			<p>{$noError}</p>
+{else if is_set($error)}
+			<p class="error">{$error}</p>
+{/if}
         </div>
     </div></div></div>
 </div>
